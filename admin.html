@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Ergebnisse - Song des Abends</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
@@ -21,15 +19,16 @@
     </div>
 
     <script>
-        // HIER DIE GLEICHE FIREBASE CONFIG WIE IN DER INDEX.HTML EINTRAGEN
+        // Deine persönliche Firebase Config
         const firebaseConfig = {
-            apiKey: "DEIN_API_KEY",
-            authDomain: "DEINE_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://DEINE_PROJECT_ID-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "DEINE_PROJECT_ID",
-            storageBucket: "DEINE_PROJECT_ID.appspot.com",
-            messagingSenderId: "DEINE_MESSAGING_ID",
-            appId: "DEINE_APP_ID"
+            apiKey: "AIzaSyB86TrxWC9rmuycZHIPWKVT8rk8kCmVEOw",
+            authDomain: "plattenkueche-9eec1.firebaseapp.com",
+            databaseURL: "https://plattenkueche-9eec1-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "plattenkueche-9eec1",
+            storageBucket: "plattenkueche-9eec1.firebasestorage.app",
+            messagingSenderId: "171239724797",
+            appId: "1:171239724797:web:e298b93b43bf5d2bbf1094",
+            measurementId: "G-S2LS9HE0G8"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -43,16 +42,13 @@
             resultsDiv.innerHTML = '';
 
             if(data) {
-                // Ermittle die maximale Stimmanzahl, um die Balken prozentual zu berechnen
                 let maxVotes = 0;
                 Object.values(data).forEach(song => {
                     if(song.votes > maxVotes) maxVotes = song.votes;
                 });
                 
-                // Falls noch niemand abgestimmt hat, setzen wir maxVotes auf 1, um Division durch 0 zu vermeiden
                 if (maxVotes === 0) maxVotes = 1;
 
-                // Songs in Array umwandeln und nach Stimmen absteigend sortieren
                 const sortedSongs = Object.keys(data).map(key => data[key]).sort((a, b) => b.votes - a.votes);
 
                 sortedSongs.forEach(song => {
@@ -72,6 +68,8 @@
                     `;
                     resultsDiv.appendChild(barContainer);
                 });
+            } else {
+                 resultsDiv.innerHTML = '<p class="text-center text-2xl text-gray-500">Noch keine Songs eingetragen.</p>';
             }
         });
     </script>
