@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Manager - Admin</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
@@ -15,7 +13,6 @@
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-center text-blue-600 mb-8 mt-4">Song Management Dashboard</h1>
 
-        <!-- Bereich zum Hinzufügen neuer Songs -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 class="text-xl font-bold mb-4">Neuen Song hinzufügen</h2>
             <div class="flex flex-col md:flex-row gap-4">
@@ -28,7 +25,6 @@
             <p id="add-error" class="text-red-500 mt-2 hidden text-sm">Bitte Titel und Künstler ausfüllen.</p>
         </div>
 
-        <!-- Gefahrenzone: Alle Votes zurücksetzen -->
         <div class="bg-red-50 p-6 rounded-lg shadow-md mb-8 border border-red-200 flex justify-between items-center">
             <div>
                 <h2 class="text-xl font-bold text-red-700">Event Starten (Reset)</h2>
@@ -39,7 +35,6 @@
             </button>
         </div>
 
-        <!-- Liste der aktuellen Songs -->
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-bold mb-4">Aktuelle Songs (Live-Übersicht)</h2>
             <div id="admin-song-list" class="space-y-4">
@@ -49,18 +44,18 @@
     </div>
 
     <script>
-        // HIER WIEDER DEINE FIREBASE CONFIG EINTRAGEN
+        // Deine persönliche Firebase Config
         const firebaseConfig = {
-            apiKey: "DEIN_API_KEY",
-            authDomain: "DEINE_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://DEINE_PROJECT_ID-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "DEINE_PROJECT_ID",
-            storageBucket: "DEINE_PROJECT_ID.appspot.com",
-            messagingSenderId: "DEINE_MESSAGING_ID",
-            appId: "DEINE_APP_ID"
+            apiKey: "AIzaSyB86TrxWC9rmuycZHIPWKVT8rk8kCmVEOw",
+            authDomain: "plattenkueche-9eec1.firebaseapp.com",
+            databaseURL: "https://plattenkueche-9eec1-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "plattenkueche-9eec1",
+            storageBucket: "plattenkueche-9eec1.firebasestorage.app",
+            messagingSenderId: "171239724797",
+            appId: "1:171239724797:web:e298b93b43bf5d2bbf1094",
+            measurementId: "G-S2LS9HE0G8"
         };
 
-        // Firebase initialisieren
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -116,7 +111,6 @@
             }
             errorMsg.classList.add('hidden');
 
-            // Eine eindeutige ID generieren (Timestamp)
             const newSongId = 'song_' + Date.now();
 
             db.ref('songs/' + newSongId).set({
@@ -124,7 +118,6 @@
                 artist: artistInput,
                 votes: 0
             }).then(() => {
-                // Felder leeren nach Erfolg
                 document.getElementById('new-title').value = '';
                 document.getElementById('new-artist').value = '';
             });
