@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Ergebnisse - Song des Abends</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-10 font-sans flex flex-col justify-center items-center">
+
+    <div class="w-full max-w-4xl">
+        <h1 class="text-5xl font-bold text-center text-orange-500 mb-12 uppercase tracking-widest">Live Voting: Song des Abends</h1>
+        
+        <div id="results" class="space-y-8">
+            <p class="text-center text-2xl text-gray-500">Warte auf erste Stimmen...</p>
+        </div>
+    </div>
+
+    <script>
+        // HIER DIE GLEICHE FIREBASE CONFIG WIE IN DER INDEX.HTML EINTRAGEN
+        const firebaseConfig = {
+            apiKey: "DEIN_API_KEY",
+            authDomain: "DEINE_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://DEINE_PROJECT_ID-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "DEINE_PROJECT_ID",
+            storageBucket: "DEINE_PROJECT_ID.appspot.com",
+            messagingSenderId: "DEINE_MESSAGING_ID",
+            appId: "DEINE_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const resultsDiv = document.getElementById('results');
+
+        // Echtzeit-Listener für die Ergebnisse
+        db.ref('songs').on('value', (snapshot) => {
+            const data = snapshot.val();
+            resultsDiv.innerHTML = '';
+
+            if(data) {
+                // Ermittle die maximale Stimmanzahl, um die Balken prozentual zu berechnen
+                let maxVotes = 0;
+                Object.values(data).forEach(song => {
+                    if(song.votes > maxVotes) maxVotes = song.votes;
+                });
+                
+                // Falls noch niemand abgestimmt hat, setzen wir maxVotes auf 1, um Division durch 0 zu vermeiden
+                if (maxVotes === 0) maxVotes = 1;
+
+                // Songs in Array umwandeln und nach Stimmen absteigend sortieren
+                const sortedSongs = Object.keys(data).map(key => data[key]).sort((a, b) => b.votes - a.votes);
+
+                sortedSongs.forEach(song => {
+                    const percentage = (song.votes / maxVotes) * 100;
+                    
+                    const barContainer = document.createElement('div');
+                    barContainer.className = "w-full";
+                    
+                    barContainer.innerHTML = `
+                        <div class="flex justify-between items-end mb-2">
+                            <h2 class="text-3xl font-bold">${song.title} <span class="text-xl font-normal text-gray-400">- ${song.artist}</span></h2>
+                            <span class="text-3xl font-bold text-orange-500">${song.votes} Stimmen</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-8 shadow-inner overflow-hidden">
+                            <div class="bg-gradient-to-r from-orange-600 to-orange-400 h-8 rounded-full transition-all duration-500 ease-out" style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(barContainer);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
