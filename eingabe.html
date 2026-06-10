@@ -148,20 +148,26 @@
             }
         };
 
-        // Funktion: Alle Votes auf 0 setzen
+        // Funktion: Alle Votes auf 0 setzen UND neue Runde starten
         window.resetAllVotes = function() {
-            if(confirm('Bist du sicher? Alle bisherigen Stimmen werden auf 0 gesetzt!')) {
+            if(confirm('Bist du sicher? Alle bisherigen Stimmen werden auf 0 gesetzt und das Voting wird für alle Handys neu gestartet!')) {
                 db.ref('songs').once('value', snapshot => {
                     const data = snapshot.val();
+                    const updates = {};
+                    
+                    // Alle Stimmen auf 0
                     if(data) {
-                        const updates = {};
                         Object.keys(data).forEach(songId => {
-                            updates[songId + '/votes'] = 0;
-                        });
-                        db.ref('songs').update(updates).then(() => {
-                            alert('Alle Stimmen wurden auf 0 gesetzt. Das Event kann starten!');
+                            updates['songs/' + songId + '/votes'] = 0;
                         });
                     }
+                    
+                    // Eine neue Runden-ID setzen (Zeitstempel)
+                    updates['currentRound'] = Date.now();
+                    
+                    db.ref().update(updates).then(() => {
+                        alert('Erfolgreich zurückgesetzt! Eine neue Voting-Runde hat begonnen.');
+                    });
                 });
             }
         };
