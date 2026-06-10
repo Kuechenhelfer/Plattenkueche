@@ -1,29 +1,4 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song des Abends - Voting</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen p-6 font-sans">
-
-    <div class="max-w-md mx-auto">
-        <h1 class="text-3xl font-bold text-center text-orange-500 mb-8 mt-4">Song des Abends 🎵</h1>
-        <p class="text-center text-gray-400 mb-8">Stimme für deinen Favoriten ab!</p>
-
-        <div id="song-list" class="space-y-4">
-            <p class="text-center text-gray-500">Lade Songs...</p>
-        </div>
-        
-        <div id="voted-message" class="hidden mt-8 p-4 bg-green-900 text-green-300 rounded-lg text-center font-bold">
-            Danke für deine Stimme!
-        </div>
-    </div>
-
-    <script>
+<script>
         // Deine persönliche Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyB86TrxWC9rmuycZHIPWKVT8rk8kCmVEOw",
@@ -36,50 +11,69 @@
             measurementId: "G-S2LS9HE0G8"
         };
 
-        // Firebase initialisieren
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const songListDiv = document.getElementById('song-list');
         const votedMessageDiv = document.getElementById('voted-message');
 
-        // Prüfen, ob der Nutzer schon abgestimmt hat
-        let hasVoted = localStorage.getItem('voted') === 'true';
+        let currentRound = "";
+        let hasVoted = false;
 
-        if (hasVoted) {
-            votedMessageDiv.classList.remove('hidden');
+        // Lausche auf die aktuelle Runde
+        db.ref('currentRound').on('value', (snapshot) => {
+            const val = snapshot.val() || "init";
+            currentRound = val;
+            
+            // Prüfen, ob für DIESE Runde schon abgestimmt wurde
+            hasVoted = localStorage.getItem('voted_round_' + currentRound) === 'true';
+
+            if (hasVoted) {
+                votedMessageDiv.classList.remove('hidden');
+            } else {
+                votedMessageDiv.classList.add('hidden');
+            }
+            
+            // Songs neu zeichnen, um Buttons zu aktivieren/deaktivieren
+            renderSongs();
+        });
+
+        // Funktion zum Zeichnen der Songliste
+        function renderSongs() {
+            db.ref('songs').once('value', (snapshot) => {
+                const data = snapshot.val();
+                songListDiv.innerHTML = ''; 
+
+                if(data) {
+                    Object.keys(data).forEach(songId => {
+                        const song = data[songId];
+                        const songCard = document.createElement('div');
+                        songCard.className = "bg-gray-800 p-4 rounded-lg flex justify-between items-center shadow-lg border border-gray-700";
+                        
+                        const btnClass = hasVoted 
+                            ? "bg-gray-600 cursor-not-allowed text-gray-400 py-2 px-4 rounded font-bold" 
+                            : "bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded font-bold transition";
+
+                        songCard.innerHTML = `
+                            <div>
+                                <h2 class="text-xl font-bold">${song.title}</h2>
+                                <p class="text-gray-400 text-sm">${song.artist}</p>
+                            </div>
+                            <button onclick="vote('${songId}')" class="${btnClass}" ${hasVoted ? 'disabled' : ''}>
+                                Voten
+                            </button>
+                        `;
+                        songListDiv.appendChild(songCard);
+                    });
+                } else {
+                    songListDiv.innerHTML = '<p class="text-center text-gray-500">Noch keine Songs verfügbar.</p>';
+                }
+            });
         }
 
-        // Songs live aus der Datenbank laden
-        db.ref('songs').on('value', (snapshot) => {
-            const data = snapshot.val();
-            songListDiv.innerHTML = ''; 
-
-            if(data) {
-                Object.keys(data).forEach(songId => {
-                    const song = data[songId];
-                    
-                    const songCard = document.createElement('div');
-                    songCard.className = "bg-gray-800 p-4 rounded-lg flex justify-between items-center shadow-lg border border-gray-700";
-                    
-                    const btnClass = hasVoted 
-                        ? "bg-gray-600 cursor-not-allowed text-gray-400 py-2 px-4 rounded font-bold" 
-                        : "bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded font-bold transition";
-
-                    songCard.innerHTML = `
-                        <div>
-                            <h2 class="text-xl font-bold">${song.title}</h2>
-                            <p class="text-gray-400 text-sm">${song.artist}</p>
-                        </div>
-                        <button onclick="vote('${songId}')" class="${btnClass}" ${hasVoted ? 'disabled' : ''}>
-                            Voten
-                        </button>
-                    `;
-                    songListDiv.appendChild(songCard);
-                });
-            } else {
-                songListDiv.innerHTML = '<p class="text-center text-gray-500">Noch keine Songs verfügbar.</p>';
-            }
+        // Songs auch live aktualisieren, wenn sich Stimmen ändern
+        db.ref('songs').on('value', () => {
+            renderSongs();
         });
 
         // Abstimm-Funktion
@@ -90,14 +84,12 @@
                 return (currentVotes || 0) + 1;
             }, (error, committed) => {
                 if (committed) {
-                    localStorage.setItem('voted', 'true');
+                    // Sperre NUR für diese spezifische Runde speichern
+                    localStorage.setItem('voted_round_' + currentRound, 'true');
                     hasVoted = true;
                     votedMessageDiv.classList.remove('hidden');
-                    // Liste zwingen, sich neu zu zeichnen (Buttons deaktivieren)
-                    db.ref('songs').once('value', snapshot => db.ref('songs').set(snapshot.val()));
+                    renderSongs();
                 }
             });
         };
     </script>
-</body>
-</html>
