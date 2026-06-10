@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song des Abends - Voting</title>
-    <!-- Tailwind CSS für einfaches, modernes Design -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
@@ -17,7 +15,6 @@
         <p class="text-center text-gray-400 mb-8">Stimme für deinen Favoriten ab!</p>
 
         <div id="song-list" class="space-y-4">
-            <!-- Songs werden hier per JavaScript geladen -->
             <p class="text-center text-gray-500">Lade Songs...</p>
         </div>
         
@@ -27,15 +24,16 @@
     </div>
 
     <script>
-        // HIER DEINE FIREBASE CONFIG EINTRAGEN
+        // Deine persönliche Firebase Config
         const firebaseConfig = {
-            apiKey: "DEIN_API_KEY",
-            authDomain: "DEINE_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://DEINE_PROJECT_ID-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "DEINE_PROJECT_ID",
-            storageBucket: "DEINE_PROJECT_ID.appspot.com",
-            messagingSenderId: "DEINE_MESSAGING_ID",
-            appId: "DEINE_APP_ID"
+            apiKey: "AIzaSyB86TrxWC9rmuycZHIPWKVT8rk8kCmVEOw",
+            authDomain: "plattenkueche-9eec1.firebaseapp.com",
+            databaseURL: "https://plattenkueche-9eec1-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "plattenkueche-9eec1",
+            storageBucket: "plattenkueche-9eec1.firebasestorage.app",
+            messagingSenderId: "171239724797",
+            appId: "1:171239724797:web:e298b93b43bf5d2bbf1094",
+            measurementId: "G-S2LS9HE0G8"
         };
 
         // Firebase initialisieren
@@ -52,33 +50,18 @@
             votedMessageDiv.classList.remove('hidden');
         }
 
-        // Initiale Beispieldaten anlegen (nur wenn Datenbank leer ist)
-        function initDummyData() {
-            db.ref('songs').once('value', snapshot => {
-                if (!snapshot.exists()) {
-                    db.ref('songs').set({
-                        "song1": { title: "Schon wieder Juni", artist: "Schattenflieger", votes: 0 },
-                        "song2": { title: "Ein anderer Beat", artist: "TikTok Allstars", votes: 0 }
-                    });
-                }
-            });
-        }
-        initDummyData();
-
         // Songs live aus der Datenbank laden
         db.ref('songs').on('value', (snapshot) => {
             const data = snapshot.val();
-            songListDiv.innerHTML = ''; // Liste leeren
+            songListDiv.innerHTML = ''; 
 
             if(data) {
                 Object.keys(data).forEach(songId => {
                     const song = data[songId];
                     
-                    // HTML für jeden Song generieren
                     const songCard = document.createElement('div');
                     songCard.className = "bg-gray-800 p-4 rounded-lg flex justify-between items-center shadow-lg border border-gray-700";
                     
-                    // Button ist deaktiviert, wenn schon abgestimmt wurde
                     const btnClass = hasVoted 
                         ? "bg-gray-600 cursor-not-allowed text-gray-400 py-2 px-4 rounded font-bold" 
                         : "bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded font-bold transition";
@@ -94,6 +77,8 @@
                     `;
                     songListDiv.appendChild(songCard);
                 });
+            } else {
+                songListDiv.innerHTML = '<p class="text-center text-gray-500">Noch keine Songs verfügbar.</p>';
             }
         });
 
@@ -101,7 +86,6 @@
         window.vote = function(songId) {
             if (hasVoted) return;
 
-            // Transaktion: Verhindert Konflikte, wenn 2 Leute in derselben Millisekunde klicken
             db.ref('songs/' + songId + '/votes').transaction((currentVotes) => {
                 return (currentVotes || 0) + 1;
             }, (error, committed) => {
