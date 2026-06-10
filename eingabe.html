@@ -1,3 +1,8 @@
+Hier ist die komplette, aktualisierte **`eingabe.html`**. Ich habe den neuen Code für das Zurücksetzen der Runden direkt fest darin verbaut, sodass du einfach den gesamten Inhalt austauschen kannst.
+
+### `eingabe.html`
+
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -148,7 +153,7 @@
             }
         };
 
-        // Funktion: Alle Votes auf 0 setzen UND neue Runde starten
+        // Funktion: Alle Votes auf 0 setzen UND neue Runde für Handys starten
         window.resetAllVotes = function() {
             if(confirm('Bist du sicher? Alle bisherigen Stimmen werden auf 0 gesetzt und das Voting wird für alle Handys neu gestartet!')) {
                 db.ref('songs').once('value', snapshot => {
@@ -162,7 +167,7 @@
                         });
                     }
                     
-                    // Eine neue Runden-ID setzen (Zeitstempel)
+                    // Eine neue Runden-ID setzen (Zeitstempel), damit das "Danke" auf den Handys verschwindet
                     updates['currentRound'] = Date.now();
                     
                     db.ref().update(updates).then(() => {
@@ -172,7 +177,7 @@
             }
         };
 
-        // NEUE Funktion: ALLE Songs komplett löschen
+        // Funktion: ALLE Songs komplett löschen
         window.deleteAllSongs = function() {
             if(confirm('ACHTUNG: Willst du wirklich ALLE Songs komplett löschen? Das kann nicht rückgängig gemacht werden!')) {
                 db.ref('songs').remove().then(() => {
@@ -183,3 +188,5 @@
     </script>
 </body>
 </html>
+
+```
