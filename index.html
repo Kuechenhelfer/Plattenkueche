@@ -1,4 +1,29 @@
-<script>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song des Abends - Voting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-6 font-sans">
+
+    <div class="max-w-md mx-auto">
+        <h1 class="text-3xl font-bold text-center text-orange-500 mb-8 mt-4">Song des Abends 🎵</h1>
+        <p class="text-center text-gray-400 mb-8">Stimme für deinen Favoriten ab!</p>
+
+        <div id="song-list" class="space-y-4">
+            <p class="text-center text-gray-500">Lade Songs...</p>
+        </div>
+        
+        <div id="voted-message" class="hidden mt-8 p-4 bg-green-900 text-green-300 rounded-lg text-center font-bold">
+            Danke für deine Stimme!
+        </div>
+    </div>
+
+    <script>
         // Deine persönliche Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyB86TrxWC9rmuycZHIPWKVT8rk8kCmVEOw",
@@ -17,13 +42,14 @@
         const songListDiv = document.getElementById('song-list');
         const votedMessageDiv = document.getElementById('voted-message');
 
-        let currentRound = "";
+        let currentRound = "init";
         let hasVoted = false;
 
         // Lausche auf die aktuelle Runde
         db.ref('currentRound').on('value', (snapshot) => {
-            const val = snapshot.val() || "init";
-            currentRound = val;
+            const val = snapshot.val();
+            // Falls currentRound in Firebase noch nicht existiert, nutzen wir "init"
+            currentRound = val ? val.toString() : "init";
             
             // Prüfen, ob für DIESE Runde schon abgestimmt wurde
             hasVoted = localStorage.getItem('voted_round_' + currentRound) === 'true';
@@ -34,7 +60,7 @@
                 votedMessageDiv.classList.add('hidden');
             }
             
-            // Songs neu zeichnen, um Buttons zu aktivieren/deaktivieren
+            // Songs direkt abrufen
             renderSongs();
         });
 
@@ -66,12 +92,12 @@
                         songListDiv.appendChild(songCard);
                     });
                 } else {
-                    songListDiv.innerHTML = '<p class="text-center text-gray-500">Noch keine Songs verfügbar.</p>';
+                    songListDiv.innerHTML = '<p class="text-center text-gray-500">Noch keine Songs verfügbar. Bitte trage zuerst Songs im Dashboard ein.</p>';
                 }
             });
         }
 
-        // Songs auch live aktualisieren, wenn sich Stimmen ändern
+        // Live-Aktualisierung bei Stimmenänderung
         db.ref('songs').on('value', () => {
             renderSongs();
         });
@@ -84,7 +110,6 @@
                 return (currentVotes || 0) + 1;
             }, (error, committed) => {
                 if (committed) {
-                    // Sperre NUR für diese spezifische Runde speichern
                     localStorage.setItem('voted_round_' + currentRound, 'true');
                     hasVoted = true;
                     votedMessageDiv.classList.remove('hidden');
@@ -93,3 +118,5 @@
             });
         };
     </script>
+</body>
+</html>
